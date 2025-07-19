@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Photobooth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fefefe;
+      --card: #ffffff;
+      --text: #222;
+      --primary: #e11060;
+      --accent: #4263eb;
+      --border: #e3e3e3;
+    }
+    body.dark {
+      --bg: #1e1e1e;
+      --card: #2a2a2a;
+      --text: #fafafa;
+      --primary: #ff6196;
+      --accent: #719bff;
+      --border: #3a3a3a;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    #container {
+      max-width: 540px;
+      margin: 40px auto;
+      padding: 30px 22px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Header with avatar and theme toggle */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1em;
+      letter-spacing: 0.5px;
+    }
+
+    .theme-toggle {
+      border: none;
+      background: var(--border);
+      color: var(--text);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: 2.5em;
+      text-align: center;
+      margin: 10px 0 22px;
+      color: var(--accent);
+    }
+
+    #settings label {
+      margin-right: 18px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    video, #canvas {
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 4/3;
+      border-radius: 16px;
+      background: #1a1a1a;
+      object-fit: cover;
+      margin: 18px auto;
+      display: block;
+    }
+
+    #countdown {
+      font-size: 64px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--primary);
+      height: 72px;
+    }
+
+    .fancy-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 13px 30px;
+      margin-top: 16px;
+      font-size: 1.1em;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .fancy-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 8px;
+    }
+
+    input[type="color"], input[type="text"] {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #strip-canvas {
+      display: block;
+      margin: 24px auto;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      background: #f0f0f0;
+    }
+
+    #download-link {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: transform 0.15s;
+    }
+
+    #download-link:hover {
+      transform: scale(1.05);
+    }
+
+    h2 {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.8em;
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    #flash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      transition: opacity 0.3s;
+    }
+
+    .show-flash {
+      opacity: 1 !important;
+      transition: opacity 0s;
+    }
+
+    @media (max-width: 580px) {
+      #container {
+        margin: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div class="header">
+      <div class="avatar">AR</div>
+      <button class="theme-toggle" id="theme-toggle">Toggle Theme</button>
+    </div>
+    <h1>Photobooth</h1>
+
+    <div id="settings">
+      <label><input type="radio" name="mode" value="color" checked> Color</label>
+      <label><input type="radio" name="mode" value="bw"> Black & White</label>
+    </div>
+
+    <div id="camera-section">
+      <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+      <div id="countdown"></div>
+      <button class="fancy-btn" id="start-btn">Take Photos</button>
+    </div>
+
+    <div id="customize-section" style="display:none;">
+      <h2>Customize Strip</h2>
+      <label>Photostrip Color:
+        <input type="color" id="stripColor" value="#ffffff">
+      </label>
+      <label>Caption:
+        <input type="text" id="caption" maxlength="42" placeholder="Optional caption">
+      </label>
+      <button class="fancy-btn" id="create-strip-btn">Create Photostrip</button>
+    </div>
+
+    <div id="result-section" style="display:none;">
+      <h2>Your Photostrip</h2>
+      <canvas id="strip-canvas"></canvas>
+      <a id="download-link" download="photostrip.png">Download</a>
+    </div>
+  </div>
+  <div id="flash"></div>
+
+  <script>
+    // Theme toggle
+    const toggleBtn = document.getElementById("theme-toggle");
+    toggleBtn.onclick = () => {
+      document.body.classList.toggle("dark");
+    };
+
+    // Camera & Photo Logic
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const startBtn = document.getElementById('start-btn');
+    const countdownDiv = document.getElementById('countdown');
+    const customizeSection = document.getElementById('customize-section');
+    const createStripBtn = document.getElementById('create-strip-btn');
+    const stripCanvas = document.getElementById('strip-canvas');
+    const downloadLink = document.getElementById('download-link');
+    const stripColor = document.getElementById('stripColor');
+    const captionInput = document.getElementById('caption');
+    const resultSection = document.getElementById('result-section');
+    const flashDiv = document.getElementById('flash');
+
+    let photoMode = 'color';
+    let photos = [];
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(() => alert('Camera access denied or not available.'));
+
+    document.querySelectorAll('input[name="mode"]').forEach(el => {
+      el.addEventListener('change', function(e) {
+        photoMode = e.target.value;
+        video.style.filter = (photoMode === 'bw') ? "grayscale(1)" : "none";
+      });
+    });
+
+    if (document.querySelector('input[name="mode"]:checked').value === 'bw') {
+      video.style.filter = "grayscale(1)";
+    }
+
+    function doFlash() {
+      flashDiv.classList.add('show-flash');
+      setTimeout(() => flashDiv.classList.remove('show-flash'), 220);
+    }
+
+    startBtn.onclick = async function() {
+      photos = [];
+      startBtn.disabled = true;
+      await take3PhotosWithFlash();
+      customizeSection.style.display = 'block';
+      startBtn.disabled = false;
+    };
+
+    async function take3PhotosWithFlash() {
+      for (let i = 1; i <= 3; i++) {
+        await countdown(3);
+        doFlash();
+        await new Promise(r => setTimeout(r, 170));
+        const img = captureFrame(photoMode);
+        photos.push(img);
+        await new Promise(r => setTimeout(r, 550));
+      }
+    }
+
+    function countdown(seconds) {
+      return new Promise(resolve => {
+        let count = seconds;
+        countdownDiv.textContent = count;
+        const interval = setInterval(() => {
+          count--;
+          countdownDiv.textContent = (count > 0) ? count : '';
+          if (count === 0) {
+            clearInterval(interval);
+            setTimeout(() => {
+              countdownDiv.textContent = '';
+              resolve();
+            }, 430);
+          }
+        }, 1200);
+      });
+    }
+
+    function captureFrame(mode) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      if (mode === 'bw') {
+        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          let avg = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+          imageData.data[i] = avg;
+          imageData.data[i + 1] = avg;
+          imageData.data[i + 2] = avg;
+        }
+        ctx.putImageData(imageData, 0, 0);
+      }
+      return canvas.toDataURL('image/png');
+    }
+
+    createStripBtn.onclick = function() {
+      const bgColor = stripColor.value;
+      const caption = captionInput.value.trim();
+      const imgW = 336, imgH = 256, gap = 24, pad = 22;
+      const nPhotos = photos.length;
+      let stripWidth = imgW + pad * 2;
+      let stripHeight = imgH * nPhotos + gap * (nPhotos - 1) + pad * 2 + (caption ? 52 : 18);
+
+      stripCanvas.width = stripWidth;
+      stripCanvas.height = stripHeight;
+      const ctx = stripCanvas.getContext('2d');
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, stripWidth, stripHeight);
+
+      let imagesLoaded = 0;
+      photos.forEach((src, i) => {
+        let img = new Image();
+        img.onload = function () {
+          ctx.save();
+          ctx.shadowColor = "rgba(54,60,115,0.21)";
+          ctx.shadowBlur = 9;
+          ctx.drawImage(img, pad, pad + i * (imgH + gap), imgW, imgH);
+          ctx.restore();
+          imagesLoaded++;
+          if (imagesLoaded === photos.length) {
+            if (caption) {
+              ctx.font = "600 23px 'Roboto Mono', monospace";
+              ctx.fillStyle = "#2c215b";
+              ctx.textAlign = "center";
+              ctx.fillText(caption, stripWidth / 2, stripHeight - pad);
+            }
+            resultSection.style.display = 'block';
+            downloadLink.href = stripCanvas.toDataURL('image/png');
+          }
+        };
+        img.src = src;
+      });
+    };
+  </script>
+</body>
+</html>
